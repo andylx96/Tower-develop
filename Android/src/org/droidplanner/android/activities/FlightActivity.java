@@ -1,15 +1,18 @@
 package org.droidplanner.android.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import org.droidplanner.android.OpenCVCam;
 import org.droidplanner.android.R;
 import org.droidplanner.android.dialogs.DialogMaterialFragment;
 import org.droidplanner.android.fragments.FlightDataFragment;
@@ -25,8 +28,11 @@ public class FlightActivity extends DrawerNavigationUI implements SlidingUpPanel
 
     private FlightDataFragment flightData;
 //edits
-
+    private Button openCvButton;
     private static String TAG = "OpenCV";
+
+
+
 
     static {
         if(OpenCVLoader.initDebug()){
@@ -65,6 +71,14 @@ public class FlightActivity extends DrawerNavigationUI implements SlidingUpPanel
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flight);
 //edits
+openCvButton = (Button) findViewById(R.id.openCvButtonMain);
+        openCvButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(FlightActivity.this, OpenCVCam.class));
+
+            }
+        });
 
         //
 
