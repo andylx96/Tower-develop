@@ -13,13 +13,16 @@ import android.widget.Button;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.droidplanner.android.OpenCVCam;
+import org.droidplanner.android.OpenCvDroneCam;
 import org.droidplanner.android.R;
 import org.droidplanner.android.dialogs.DialogMaterialFragment;
 import org.droidplanner.android.fragments.FlightDataFragment;
 import org.droidplanner.android.fragments.WidgetsListFragment;
 import org.droidplanner.android.fragments.actionbar.ActionBarTelemFragment;
 import org.droidplanner.android.utils.Utils;
+import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
 
 public class FlightActivity extends DrawerNavigationUI implements SlidingUpPanelLayout.PanelSlideListener {
 
@@ -27,28 +30,30 @@ public class FlightActivity extends DrawerNavigationUI implements SlidingUpPanel
     private static final boolean DEFAULT_IS_ACTION_DRAWER_OPENED = true;
 
     private FlightDataFragment flightData;
-//edits
-    private Button openCvButton;
+    //edits
+    private Button openCvButton, openCvDroneButton;
     private static String TAG = "OpenCV";
 
 
 
-
     static {
-        if(OpenCVLoader.initDebug()){
-            Log.i(TAG,"OpenCVLoaded");
-        }
-        else {
-            Log.i(TAG,"OpenCv Not Loaded");
+        if (OpenCVLoader.initDebug()) {
+            Log.i(TAG, "OpenCVLoaded");
+
+
+
+        } else {
+            Log.i(TAG, "OpenCv Not Loaded");
         }
 
     }
     //
 
-
-
-
-
+    static {
+//        System.loadLibrary("native-lib");
+        System.loadLibrary("MyLibs");
+//        System.loadLibrary("MyFaceLibs");
+    }
 
     @Override
     public void onDrawerClosed() {
@@ -71,12 +76,22 @@ public class FlightActivity extends DrawerNavigationUI implements SlidingUpPanel
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flight);
 //edits
-openCvButton = (Button) findViewById(R.id.openCvButtonMain);
+        openCvButton = (Button) findViewById(R.id.openCvButtonMain);
         openCvButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(FlightActivity.this, OpenCVCam.class));
 
+                Mat matb = new Mat();
+            }
+        });
+
+
+        openCvDroneButton = (Button) findViewById(R.id.openCvDroneButton);
+        openCvDroneButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(FlightActivity.this, OpenCvDroneCam.class));
             }
         });
 
@@ -85,13 +100,11 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
 
 
 
-
-
         final FragmentManager fm = getSupportFragmentManager();
 
         //Add the flight data fragment
         flightData = (FlightDataFragment) fm.findFragmentById(R.id.flight_data_container);
-        if(flightData == null){
+        if (flightData == null) {
             Bundle args = new Bundle();
             args.putBoolean(FlightDataFragment.EXTRA_SHOW_ACTION_DRAWER_TOGGLE, true);
 
@@ -120,8 +133,8 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
     }
 
     @Override
-    protected void onToolbarLayoutChange(int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom){
-        if(flightData != null)
+    protected void onToolbarLayoutChange(int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+        if (flightData != null)
             flightData.updateActionbarShadow(bottom);
     }
 
@@ -143,12 +156,12 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
     }
 
     @Override
-    public void onStart(){
+    public void onStart() {
         super.onStart();
 
         final Context context = getApplicationContext();
         //Show the changelog if this is the first time the app is launched since update/install
-        if(Utils.getAppVersionCode(context) > mAppPrefs.getSavedAppVersionCode()) {
+        if (Utils.getAppVersionCode(context) > mAppPrefs.getSavedAppVersionCode()) {
             DialogMaterialFragment changelog = new DialogMaterialFragment();
             changelog.show(getSupportFragmentManager(), "Changelog Dialog");
 
@@ -176,7 +189,7 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
         final int bottomMargin = (int) getResources().getDimension(R.dimen.action_drawer_margin_bottom);
 
         //Update the bottom margin for the action drawer
-        final View flightActionBar = ((ViewGroup)view).getChildAt(0);
+        final View flightActionBar = ((ViewGroup) view).getChildAt(0);
         final int[] viewLocs = new int[2];
         flightActionBar.getLocationInWindow(viewLocs);
         updateActionDrawerBottomMargin(viewLocs[0] + flightActionBar.getWidth(), Math.max((int) (view.getHeight() * v), bottomMargin));
@@ -184,7 +197,7 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
 
     @Override
     public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-        switch(newState){
+        switch (newState) {
             case COLLAPSED:
             case HIDDEN:
                 resetActionDrawerBottomMargin();
@@ -192,7 +205,7 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
 
             case EXPANDED:
                 //Update the bottom margin for the action drawer
-                ViewGroup slidingPanel = (ViewGroup) ((ViewGroup)panel).getChildAt(1);
+                ViewGroup slidingPanel = (ViewGroup) ((ViewGroup) panel).getChildAt(1);
                 final View flightActionBar = slidingPanel.getChildAt(0);
                 final int[] viewLocs = new int[2];
                 flightActionBar.getLocationInWindow(viewLocs);
@@ -201,32 +214,32 @@ openCvButton = (Button) findViewById(R.id.openCvButtonMain);
         }
     }
 
-    private void updateActionDrawerBottomMargin(int rightEdge, int bottomMargin){
+    private void updateActionDrawerBottomMargin(int rightEdge, int bottomMargin) {
         final ViewGroup actionDrawerParent = (ViewGroup) getActionDrawer();
-        final View actionDrawer = ((ViewGroup)actionDrawerParent.getChildAt(1)).getChildAt(0);
+        final View actionDrawer = ((ViewGroup) actionDrawerParent.getChildAt(1)).getChildAt(0);
 
         final int[] actionDrawerLocs = new int[2];
         actionDrawer.getLocationInWindow(actionDrawerLocs);
 
-        if(actionDrawerLocs[0] <= rightEdge) {
+        if (actionDrawerLocs[0] <= rightEdge) {
             updateActionDrawerBottomMargin(bottomMargin);
         }
     }
 
-    private int getActionDrawerBottomMargin(){
+    private int getActionDrawerBottomMargin() {
         final ViewGroup actionDrawerParent = (ViewGroup) getActionDrawer();
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) actionDrawerParent.getLayoutParams();
         return lp.bottomMargin;
     }
 
-    private void updateActionDrawerBottomMargin(int newBottomMargin){
+    private void updateActionDrawerBottomMargin(int newBottomMargin) {
         final ViewGroup actionDrawerParent = (ViewGroup) getActionDrawer();
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) actionDrawerParent.getLayoutParams();
         lp.bottomMargin = newBottomMargin;
         actionDrawerParent.requestLayout();
     }
 
-    private void resetActionDrawerBottomMargin(){
+    private void resetActionDrawerBottomMargin() {
         updateActionDrawerBottomMargin((int) getResources().getDimension(R.dimen.action_drawer_margin_bottom));
     }
 }

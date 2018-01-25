@@ -15,7 +15,7 @@ extern "C" {
  * Signature: (J)V
  */
 
-float detect (Mat& frame);
+void detect (Mat& frame);
 
 
 JNIEXPORT void JNICALL Java_org_droidplanner_android_NativeClass_faceDetection

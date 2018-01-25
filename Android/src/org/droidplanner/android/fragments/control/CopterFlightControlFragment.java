@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
+import com.o3dr.services.android.lib.model.AbstractCommandListener;
 import com.o3dr.services.android.lib.model.SimpleCommandListener;
 
 import org.droidplanner.android.R;
@@ -33,6 +35,7 @@ import org.droidplanner.android.proxy.mission.MissionProxy;
 import org.droidplanner.android.utils.analytics.GAUtils;
 import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 
+
 /**
  * Provide functionality for flight action button specific to copters.
  */
@@ -43,6 +46,24 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
     private static final String DRONIE_CREATION_DIALOG_TAG = "Confirm dronie creation";
 
     private static final IntentFilter eventFilter = new IntentFilter();
+    private static double ALTITUDE = 1.5;
+    public static boolean TakenOff = false;
+    private AbstractCommandListener cmd_center = new AbstractCommandListener() {
+        @Override
+        public void onSuccess() {
+//            Log.d(TAG, "Command received");
+        }
+
+        @Override
+        public void onError(int executionError) {
+//            Log.d(TAG, "Command error");
+        }
+
+        @Override
+        public void onTimeout() {
+//            Log.d(TAG, "Command not received, timeout.");
+        }
+    };
 
     static {
         eventFilter.addAction(AttributeEvent.STATE_ARMING);
@@ -153,7 +174,6 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_copter_mission_control, container, false);
     }
-
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -182,7 +202,20 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
 
         final Button takeoffBtn = (Button) view.findViewById(R.id.mc_takeoff);
         takeoffBtn.setOnClickListener(this);
+        // test only
+        Button ascend = (Button) view.findViewById(R.id.mc_climb);
+        ascend.setOnClickListener(this);
 
+        Button descend = (Button) view.findViewById(R.id.mc_down);
+        descend.setOnClickListener(this);
+
+        Button leftBtn = (Button) view.findViewById(R.id.mc_turnLeft);
+        leftBtn.setOnClickListener(this);
+
+        Button rightBtn = (Button) view.findViewById(R.id.mc_turnRight);
+        rightBtn.setOnClickListener(this);
+
+        // end of test only
         pauseBtn = (Button) view.findViewById(R.id.mc_pause);
         pauseBtn.setOnClickListener(this);
 
@@ -248,6 +281,22 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
                 getTakeOffConfirmation();
                 eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Takeoff");
                 break;
+            case R.id.mc_climb:
+                ascend();
+                eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Climb");
+                break;
+            case R.id.mc_down:
+                descend();
+                eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Down");
+                break;
+            case R.id.mc_turnLeft:
+                turnLeft();
+                eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Left");
+                break;
+            case R.id.mc_turnRight:
+                turnRight();
+                eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Right");
+                break;
 
             case R.id.mc_homeBtn:
                 VehicleApi.getApi(drone).setVehicleMode(VehicleMode.COPTER_RTL);
@@ -290,6 +339,7 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
                 break;
         }
 
+
         if (eventBuilder != null) {
             GAUtils.sendEvent(eventBuilder);
         }
@@ -307,15 +357,83 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
         }
     }
 
-    private void getTakeOffConfirmation() {
-        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("take off", new Runnable() {
+
+    private void getClimbConfirmation() {
+        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
             @Override
             public void run() {
-                final double takeOffAltitude = getAppPrefs().getDefaultAltitude();
+                ALTITUDE ++;
+                ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
+            }
+        });
+        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
+    }
+    private void getTurnLeftConfirmation() {
+        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
+            @Override
+            public void run() {
+//                Log.d(TAG, "Running Turn");
+                ControlApi.getApi(getDrone()).turnTo(20,0.4f,true, cmd_center);
+//                Log.d(TAG, "Running Turn finished");
+//                ControlApi.getApi(getDrone()).goTo();
+            }
+        });
+        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
+    }
+    private void ascend() {
+//        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
+//            @Override
+//            public void run() {
+                ALTITUDE += 0.25;
+                ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
+////            }
+//        });
+//        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
+    }
+    private void descend() {
+//        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
+//            @Override
+//            public void run() {
+                ALTITUDE -= 0.25;
+                ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
+//            }
+//        });
+//        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
+    }
+    private void turnRight() {
+//        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "Running Turn");
+                ControlApi.getApi(getDrone()).turnTo(-20,0.4f,true, cmd_center);
+//                Log.d(TAG, "Running Turn finished");
+//                ControlApi.getApi(getDrone()).goTo();
+//            }
+//        });
+//        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
+    }
+    private void turnLeft() {
+//        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "Running Turn");
+                ControlApi.getApi(getDrone()).turnTo(20,0.4f,true, cmd_center);
+//                Log.d(TAG, "Running Turn finished");
+//                ControlApi.getApi(getDrone()).goTo();
+//            }
+//        });
+//        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
+    }
+    private void getTakeOffConfirmation() {
+        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("take off at 1.0", new Runnable() {
+            @Override
+            public void run() {
+//                final double takeOffAltitude = getAppPrefs().getDefaultAltitude();
+                final double takeOffAltitude = ALTITUDE;
                 ControlApi.getApi(getDrone()).takeoff(takeOffAltitude, null);
             }
         });
-        unlockDialog.show(getChildFragmentManager(), "Slide to take off");
+        unlockDialog.show(getChildFragmentManager(), "Slide to take off at 1.0 m");
     }
 
     private void getTakeOffInAutoConfirmation() {

@@ -5,7 +5,7 @@ package org.droidplanner.android;
  */
 
 public class NativeClass {
-    public native static void faceDetection(long addRgba);
+    public native static float faceDetection(long addRgba);
 
 }
 

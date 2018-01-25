@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_open_cvcam"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="org.droidplanner.android.OpenCvDroneCam">
+
+
+    <TextureView
+        android:id="@+id/sololink_video_view_cv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:minHeight="85dp"
+        tools:layout_editor_absoluteX="60dp"
+        tools:layout_editor_absoluteY="46dp" />
+
+
+
+</RelativeLayout>

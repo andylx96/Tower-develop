@@ -14,36 +14,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        tools:visibility="visible"
-        tools:layout_height="@dimen/mission_control_bar_height"
-        android:id="@+id/mc_disarmed_buttons"
-        android:layout_gravity="center_horizontal">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/mc_armBtn"
-                style="@style/flightControlButton.Row"
-                android:drawableTop="@drawable/ic_arm_active"
-                android:text="@string/mission_control_arm"/>
-
-            <Button
-                android:id="@+id/mc_dronieBtn"
-                style="@style/flightControlButton.Row"
-                android:drawableTop="@drawable/ic_dronie_active"
-                android:text="@string/mission_control_dronie"
-                />
-
-        </LinearLayout>
-    </android.support.v7.widget.CardView>
-
-    <android.support.v7.widget.CardView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
         android:id="@+id/mc_armed_buttons"
         android:layout_gravity="center_horizontal">
 
@@ -96,7 +66,38 @@
                 android:drawableTop="@drawable/ic_home_active"
                 android:layout_weight="1"
                 android:text="@string/mission_control_home"/>
-
+            <Button
+                android:id="@+id/mc_climb"
+                style="@style/flightControlButton.Row"
+                android:layout_width="75dp"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/ic_home_active"
+                android:layout_weight="1"
+                android:text="Climb"/>
+            <Button
+                android:id="@+id/mc_down"
+                style="@style/flightControlButton.Row"
+                android:layout_width="75dp"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/ic_home_active"
+                android:layout_weight="1"
+                android:text="Climb"/>
+            <Button
+                android:id="@+id/mc_turnLeft"
+                style="@style/flightControlButton.Row"
+                android:layout_width="75dp"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/ic_follow_active"
+                android:layout_weight="1"
+                android:text="Left"/>
+            <Button
+                android:id="@+id/mc_turnRight"
+                style="@style/flightControlButton.Row"
+                android:layout_width="75dp"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/ic_follow_active"
+                android:layout_weight="1"
+                android:text="Right"/>
             <Button
                 android:id="@+id/mc_land"
                 style="@style/flightControlButton.Row"
@@ -145,6 +146,35 @@
                 android:background="@drawable/flight_action_row_bg_selector"
                 android:src="@drawable/ic_more_vert_black_24dp"
                 android:scaleType="center"/>
+
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/mc_disarmed_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        tools:layout_height="@dimen/mission_control_bar_height"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/mc_armBtn"
+                style="@style/flightControlButton.Row"
+                android:drawableTop="@drawable/ic_arm_active"
+                android:text="@string/mission_control_arm" />
+
+            <Button
+                android:id="@+id/mc_dronieBtn"
+                style="@style/flightControlButton.Row"
+                android:drawableTop="@drawable/ic_dronie_active"
+                android:text="@string/mission_control_dronie" />
 
         </LinearLayout>
     </android.support.v7.widget.CardView>

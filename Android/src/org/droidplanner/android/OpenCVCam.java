@@ -13,6 +13,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 public class OpenCVCam extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2{
     private static final String TAG = "MainActivity";
@@ -100,8 +101,8 @@ public class OpenCVCam extends AppCompatActivity implements CameraBridgeViewBase
     public void onCameraViewStarted(int width, int height) {
         mRgba =  new Mat(height, width, CvType.CV_8UC4);
 //initizlize var
-        imgGray = new Mat(height, width, CvType.CV_8UC1);
-        imgCanny = new Mat(height, width, CvType.CV_8UC1);
+//        imgGray = new Mat(height, width, CvType.CV_8UC1);
+//        imgCanny = new Mat(height, width, CvType.CV_8UC1);
 
     }
 
@@ -113,14 +114,16 @@ public class OpenCVCam extends AppCompatActivity implements CameraBridgeViewBase
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-
 //set gray scale;
-//        Imgproc.cvtColor(mRgba, imgGray, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.cvtColor(mRgba, imgGray, Imgproc.COLOR_RGB2GRAY);
+        NativeClass.faceDetection(mRgba.getNativeObjAddr());
+        return mRgba;
+
 // set canny
 //        Imgproc.Canny(mRgba, imgCanny, 50, 150);
 //caled face dection method
-        NativeClass.faceDetection(mRgba.getNativeObjAddr());
-        return mRgba;
+//        NativeClass.faceDetection(mRgba.getNativeObjAddr());
+
 //        returns canny
 //    return imgCanny;
     }

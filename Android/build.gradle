@@ -3,7 +3,6 @@ apply plugin: 'io.fabric'
 apply plugin: 'kotlin-android'
 
 dependencies {
-    compile 'com.android.support:multidex:1.0.1'
     compile "com.google.android.gms:play-services-maps:${play_services_version}"
     compile "com.google.android.gms:play-services-location:${play_services_version}"
     compile "com.google.android.gms:play-services-analytics:${play_services_version}"
@@ -15,13 +14,10 @@ dependencies {
     compile "com.android.support:recyclerview-v7:${support_lib_version}"
     compile "com.android.support:design:${support_lib_version}"
     // Android library to display the changelog
-    compile 'com.github.gabrielemariotti.changeloglib:changelog:2.0.0'
     //DroneKit-Android client lib
-    compile 'com.o3dr.android:dronekit-android:3.0.2'
     //Comment line above, and uncomment line below to use your local version of the dronekit-android client lib
     //Don't forget to uncomment the lines in the settings.gradle file as well.
     //     compile project(':ClientLib')
-    compile 'me.grantland:autofittextview:0.2.1'
     compile(name: 'shimmer-android-release', ext: 'aar')
     compile(name: 'libuvccamera-release', ext: 'aar')
     compile(name: 'sliding-up-panel-3.3.0', ext: 'aar')
@@ -32,19 +28,25 @@ dependencies {
     compile files('libs/BaiduLBS_Android.jar')
     compile "com.squareup.okhttp:okhttp:${okhttp_version}"
     compile "com.squareup.okhttp:okhttp-urlconnection:${okhttp_version}"
-    compile 'com.jakewharton.timber:timber:3.1.0'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar')
             {
                 transitive = true;
             }
     //Charts and graph library
-    compile 'com.github.lecho:hellocharts-library:1.5.5@aar'
     //Leak canary (https://github.com/square/leakcanary)
+    compile project(':openCVLibrary310')
+    compile 'com.android.support:multidex:1.0.1'
+    compile 'com.github.gabrielemariotti.changeloglib:changelog:2.0.0'
+    compile 'com.o3dr.android:dronekit-android:3.0.2'
+    compile 'me.grantland:autofittextview:0.2.1'
+    compile 'com.jakewharton.timber:timber:3.1.0'
+    compile 'com.github.lecho:hellocharts-library:1.5.5@aar'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
-    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
-    compile project(':openCVLibrary310')
+    compile 'org.jetbrains.anko:anko-common:0.8.3'
 }
 
 def versionPrefix = "Tower-v"
@@ -209,8 +211,6 @@ android {
         }
     }
 
-
-
 //ndk
     sourceSets.main {
         jni.srcDirs = [] //disable automatic ndk-build call
@@ -226,7 +226,6 @@ android {
         compileTask -> compileTask.dependsOn ndkBuild
     }
 ///ndk
-
 
 
     buildTypes {

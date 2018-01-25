@@ -4,25 +4,37 @@
     android:layout_height="match_parent">
 
     <FrameLayout
+        android:id="@+id/flight_data_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/flight_data_container"/>
+        android:layout_height="491dp" />
 
     <org.droidplanner.android.view.FitsSystemWindowsFrameLayout
+        android:id="@+id/actionbar_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/actionbar_container"
         android:fitsSystemWindows="true">
 
-        <include layout="@layout/actionbar_toolbar"/>
+        <include layout="@layout/actionbar_toolbar" />
     </org.droidplanner.android.view.FitsSystemWindowsFrameLayout>
 
-    <Button
-        android:id="@+id/openCvButtonMain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OpenCV" />
+    <android.support.v7.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/openCvButtonMain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OpenCV" />
+
+        <Button
+            android:id="@+id/openCvDroneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Drone OpenCV" />
+    </android.support.v7.widget.LinearLayoutCompat>
+
 </FrameLayout>

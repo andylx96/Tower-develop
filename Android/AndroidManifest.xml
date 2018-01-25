@@ -19,12 +19,9 @@
 
     <!-- Custome -->
 
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-
 
     <!-- BaiduMap dependencies -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -175,9 +172,10 @@
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
-            android:process=":remote"></service>
+            android:process=":remote" />
 
-        <activity android:name=".OpenCVCam"></activity>
+        <activity android:name=".OpenCVCam" />
+        <activity android:name=".OpenCvDroneCam"></activity>
     </application>
 
 </manifest>
