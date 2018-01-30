@@ -35,11 +35,19 @@ import org.droidplanner.android.proxy.mission.MissionProxy;
 import org.droidplanner.android.utils.analytics.GAUtils;
 import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 
+import org.opencv.core.*;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.objdetect.HOGDescriptor;
+import org.opencv.objdetect.Objdetect;
 
 /**
  * Provide functionality for flight action button specific to copters.
  */
 public class CopterFlightControlFragment extends BaseFlightControlFragment implements SupportYesNoDialog.Listener {
+
+
 
     private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
 
@@ -49,6 +57,11 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
     private static double ALTITUDE = 1.5;
     public static boolean TakenOff = false;
     private AbstractCommandListener cmd_center = new AbstractCommandListener() {
+
+
+
+
+
         @Override
         public void onSuccess() {
 //            Log.d(TAG, "Command received");
@@ -172,6 +185,11 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+//        FeatureDetector blob = FeatureDetector.create(FeatureDetector.SIFT);
+//        MatOfKeyPoint keyPoints = new MatOfKeyPoint();
+//        blob.detect(new Mat(), keyPoints);
+
+
         return inflater.inflate(R.layout.fragment_copter_mission_control, container, false);
     }
     @Override
@@ -384,8 +402,8 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
 //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
 //            @Override
 //            public void run() {
-                ALTITUDE += 0.25;
-                ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
+        ALTITUDE += 0.25;
+        ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
 ////            }
 //        });
 //        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
@@ -394,8 +412,8 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
 //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
 //            @Override
 //            public void run() {
-                ALTITUDE -= 0.25;
-                ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
+        ALTITUDE -= 0.25;
+        ControlApi.getApi(getDrone()).climbTo(ALTITUDE);
 //            }
 //        });
 //        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
@@ -405,7 +423,7 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
 //            @Override
 //            public void run() {
 //                Log.d(TAG, "Running Turn");
-                ControlApi.getApi(getDrone()).turnTo(-20,0.4f,true, cmd_center);
+        ControlApi.getApi(getDrone()).turnTo(-20,0.4f,true, cmd_center);
 //                Log.d(TAG, "Running Turn finished");
 //                ControlApi.getApi(getDrone()).goTo();
 //            }
@@ -417,7 +435,7 @@ public class CopterFlightControlFragment extends BaseFlightControlFragment imple
 //            @Override
 //            public void run() {
 //                Log.d(TAG, "Running Turn");
-                ControlApi.getApi(getDrone()).turnTo(20,0.4f,true, cmd_center);
+        ControlApi.getApi(getDrone()).turnTo(20,0.4f,true, cmd_center);
 //                Log.d(TAG, "Running Turn finished");
 //                ControlApi.getApi(getDrone()).goTo();
 //            }

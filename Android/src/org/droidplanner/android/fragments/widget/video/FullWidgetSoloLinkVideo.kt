@@ -49,9 +49,91 @@ import org.opencv.objdetect.Objdetect
  * Created by Fredia Huya-Kouadio on 7/19/15.
  */
 public class FullWidgetSoloLinkVideo : BaseVideoWidget(){
+    private var ALTITUDE = 1.8
+    private var Moving = false
+    private val cmd_center = object : AbstractCommandListener() {
+        override fun onSuccess() {
+            //            Log.d(TAG, "Command received");
+        }
 
+        override fun onError(executionError: Int) {
+            //            Log.d(TAG, "Command error");
+        }
 
-    companion object {
+        override fun onTimeout() {
+            //            Log.d(TAG, "Command not received, timeout.");
+        }
+    }
+    // Move logic
+    private fun stop() {
+        Moving = false
+        ControlApi.getApi(drone).manualControl(0f, 0.toFloat(), 0f, null)
+    }
+
+    private fun runLeft() {
+        Moving = true
+        ControlApi.getApi(drone).manualControl(0f, (-0.4).toFloat(), 0f, null)
+    }
+
+    private fun runRight() {
+        Moving = true
+        ControlApi.getApi(drone).manualControl(0f, 0.4.toFloat(), 0f, null)
+    }
+
+    private fun walkLeft() {
+        Moving = true
+        ControlApi.getApi(drone).manualControl(0f, (-0.2).toFloat(), 0f, null)
+    }
+
+    private fun walkRight() {
+        Moving = true
+        ControlApi.getApi(drone).manualControl(0f, 0.2.toFloat(), 0f, null)
+    }
+
+    private fun climbUp() {
+        ALTITUDE += 0.2
+        ControlApi.getApi(drone).climbTo(ALTITUDE)
+    }
+
+    private fun moveDown() {
+        ALTITUDE -= 0.2
+        ControlApi.getApi(drone).climbTo(ALTITUDE)
+    }
+    fun moveLogic(coordX: Int, coordY: Int, frameX: Int, frameY: Int) {
+        val partition = (frameX / 9).toDouble()
+        val stopRegion1 = 3 * partition
+        val stopRegion2 = 6 * partition
+        val runRegion1 = 2 * partition
+        val runRegion2 = 7 * partition
+
+        val partHeight = (frameY / 5).toDouble()
+        val cameraTooLow = 4 * partHeight
+        // horizontal movement
+        if (coordX <= runRegion1) {
+
+            runLeft()
+
+        } else if (coordX >= runRegion2) {
+            runRight()
+        } else if (coordX <= stopRegion2 && coordX >= stopRegion1) {
+            if (!Moving) {
+                stop()
+            }
+        } else if (coordX > runRegion1) {
+            walkLeft()
+        } else if (coordX < runRegion2) {
+            walkRight()
+        }
+
+        //vertical movements, remove if drone behaves abnormally
+        if (coordY < partHeight) {
+            moveDown()
+        } else if (coordY < cameraTooLow) {
+            climbUp()
+        }
+    }
+
+        companion object {
         private val filter = initFilter()
 
         @JvmStatic protected val TAG = FullWidgetSoloLinkVideo::class.java.simpleName
@@ -83,7 +165,109 @@ public class FullWidgetSoloLinkVideo : BaseVideoWidget(){
         }
 
     }
+    public fun get_person(img: Mat): IntArray
+    {
+        val hog =  HOGDescriptor()
 
+        val img1ch = Mat(img.height(),img.width(),CvType.CV_8U)
+        img.convertTo(img1ch, CvType.CV_8U)
+
+//        val ho
+        hog.setSVMDetector(HOGDescriptor.getDefaultPeopleDetector())
+        //                CVzie
+        //                CvR
+        val found = MatOfRect()
+        val matOfDouble = MatOfDouble()
+        val found_filtered: MatOfRect
+        Imgproc.cvtColor(img1ch, img1ch, Imgproc.COLOR_BGR2GRAY)
+        // equalize the frame histogram to improve the result
+        Imgproc.equalizeHist(img1ch, img1ch)
+        Timber.d("Image channel is " + img1ch.channels())
+        Timber.d("Image type is " + img1ch.type())
+
+        hog.detectMultiScale(img1ch, found, matOfDouble, 0.0,
+                Size(8.0, 8.0), Size(32.0, 32.0), 1.05, 2.0, false)
+        val arr = found.toArray()
+
+        if(arr.size > 0) {
+        //        Timber.d("Arr is "+ arr.toString())
+
+            val coord_x = arr[0].x
+            val coord_y = arr[0].y
+            val center_x = (arr[0].width + coord_x) / 2
+            val center_y = (arr[0].height + coord_y) / 2
+            Timber.d("xxxxcenter x is " + center_x)
+            Timber.d("yyyycenter y is " + center_y)
+            val x_y = intArrayOf(center_x, center_y)
+            var center: Point
+
+
+            center = Point(arr[0].x + arr[0].width * 0.5, arr[0].y + arr[0].height * 0.5)
+            Imgproc.ellipse(img1ch, center, Size(arr[0].width * 0.5, arr[0].height * 0.5), 0.0, 0.0, 360.0, Scalar(255.0, 0.0, 255.0), 4, 8, 0)
+
+            moveLogic(arr[0].x, arr[0].y, img.width(), img.height())
+
+
+
+
+//            val bmp=  Bitmap();
+//            Utils.matToBitmap(img1ch, bmp)
+//
+//            imageView2?.setImageBitmap()
+
+            //            int higharea = -1;
+            //            boolean flag = false;
+            //            int highareaindex = -1;
+            //            int i, j;
+            //
+            //            Rect[] arr = found.toArray();
+            ////            int k =  found.size();
+            //            for (i=0; i< found.toArray().length ; i++)
+            //            {
+            //                Rect r = arr[i];
+            ////                for (j=0; j<arr.length; j++)
+            ////                    if (j!=i && (r & arr[j])==r)
+            ////                        break;
+            //                if (j==arr.length) {
+            //                    found_filtered.push_back(r);
+            //                    Rect[] arr2 = found_filtered.toArray();
+            //                    arr2.
+            //                }
+            //            }
+            //            for (i=0; i<found_filtered.size(); i++)
+            //            {
+            //                Rect r = found_filtered[i];
+            //                if (r.area() >= higharea){
+            //                    higharea = r.area();
+            //                    highareaindex = i;
+            //                }
+            //                flag = true;
+            //
+            //            }
+            //
+            //            if(flag == true){
+            //                Rect r = found_filtered[highareaindex];
+            //                cout << r.area() << endl;
+            //                r.x += cvRound(r.width*0.1);
+            //                r.width = cvRound(r.width*0.8);
+            //                r.y += cvRound(r.height*0.06);
+            //                r.height = cvRound(r.height*0.9);
+            //                rectangle(img, r.tl(), r.br(), cv::Scalar(0,255,0), 2);
+            //
+            //            }
+            //        }}
+            //        x_y = [r.width, r.height]
+            //        returnPoint = x_y;
+            //
+            //        // cleanup
+            //        mxDestroyArray(arr);
+            //        matClose(pmat);
+
+            return x_y // return a pointer to r.x and r.y
+        }
+        val nothing = intArrayOf(img.height() / 2, img.width() / 2)
+        return nothing
+    }
     private val resetGimbalControl = object: Runnable {
 
         override fun run() {
@@ -186,96 +370,99 @@ public class FullWidgetSoloLinkVideo : BaseVideoWidget(){
 
             override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
 
-if (toggle == true) {
-    val bmp: Bitmap? = textureView?.getBitmap()
+                if (toggle == true) {
+                    val bmp: Bitmap? = textureView?.getBitmap()
 
-    Timber.d("Height is :" + bmp?.height.toString())
-    Timber.d("Width is :" + bmp?.width.toString())
+                //    bmp?.height = 240
+                //    bmp?.width = 320
+                    Timber.d("Height is :" + bmp?.height.toString())
+                    Timber.d("Width is :" + bmp?.width.toString())
 
-    val cvimg = Mat()
-//                        val cvimg:Mat? = Mat
-    Utils.bitmapToMat(bmp, cvimg)
+                    val cvimg = Mat()
+                //                        val cvimg:Mat? = Mat
+                    Utils.bitmapToMat(bmp, cvimg)
+                //    cvimg.set
+//                    val coords = get_person(cvimg)
 
-
-//                val displacement:Float? = NativeClass.faceDetection(cvimg.nativeObj);
-//jave to build in java code
-    val displacementArray: FloatArray? = detectAndDisplay(cvimg);
-    val displacementX: Float? = displacementArray?.get(0)
-    val displacementY: Float? = displacementArray?.get(1)
-
-
-
-
-
-    Timber.d("Frame Width Displace Of Cam" + displacementX.toString())
-    Timber.d("Frame Height Displace Of Cam" + displacementY.toString())
-
-    Utils.matToBitmap(cvimg, bmp)
-
-    imageView2?.setImageBitmap(bmp)
+                //                val displacement:Float? = NativeClass.faceDetection(cvimg.nativeObj);
+                //jave to build in java code
+                    val displacementArray: FloatArray? = detectAndDisplay(cvimg);
+                    val displacementX: Float? = displacementArray?.get(0)
+                    val displacementY: Float? = displacementArray?.get(1)
 
 
 
 
-    GimbalApi.getApi(drone).startGimbalControl(orientationListener)
-    val orientation2 = GimbalApi.getApi(drone).getGimbalOrientation()
+
+                    Timber.d("Frame Width Displace Of Cam" + displacementX.toString())
+                    Timber.d("Frame Height Displace Of Cam" + displacementY.toString())
+
+                    Utils.matToBitmap(cvimg, bmp)
+
+                    imageView2?.setImageBitmap(bmp)
+
+
+
+
+                    GimbalApi.getApi(drone).startGimbalControl(orientationListener)
+                    val orientation2 = GimbalApi.getApi(drone).getGimbalOrientation()
 //            var rotateYaw:Float? = orientation2.getYaw()+ -100.00.toFloat()
 
     //yaw is y axis spin
     //pitch is x axis spin
     //roll is camera spin
-    if (displacementY!! == 312.0f) {
-        Timber.d("No Face")
-    } else if (displacementY!! > 150f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 10, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! > 120f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 6, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! > 70f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 3, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! > 50f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 1, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! == 0f) {
-        Timber.d("Displacement 0 Centered")
-    } else if (displacementY!! > -50f) {
-//                    GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 1, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! > -70f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 1, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! > -120f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 3, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else if (displacementY!! > -150f) {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 6, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    } else {
-        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 10, orientation2.getRoll(), 0.toFloat(), orientationListener)
-
-    }
-
-
-    if (displacementX!! == 540.0f) {
-        Timber.d("No Face")
-    } else if (displacementX!! > 0.0f) {
-//Left Is Positive
-        turnLeft()
-        Timber.d("Turn Left")
-    } else if (displacementX!! == 0.0f) {
-
-
-        Timber.d("Centered")
-    } else if (displacementX!! < 0.0f) {
-
-//                    Negitive Is Right
-turnRight()
-        Timber.d("Turn Right")
-    } else {
-        Timber.d("None Width")
-    }
+//    if (displacementY!! == 312.0f) {
+//        Timber.d("No Face")
+//    } else if (displacementY!! > 150f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 10, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! > 120f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 6, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! > 70f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 3, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! > 50f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() + 1, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! == 0f) {
+//        Timber.d("Displacement 0 Centered")
+//    } else if (displacementY!! > -50f) {
+////                    GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 1, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! > -70f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 1, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! > -120f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 3, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else if (displacementY!! > -150f) {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 6, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    } else {
+//        GimbalApi.getApi(drone).updateGimbalOrientation(orientation2.getPitch() - 10, orientation2.getRoll(), 0.toFloat(), orientationListener)
+//
+//    }
+//
+//
+//    if (displacementX!! == 540.0f) {
+//        Timber.d("No Face")
+//    } else if (displacementX!! > 0.0f) {
+////Left Is Positive
+////        turnLeft()
+//        Timber.d("Turn Left")
+//    } else if (displacementX!! == 0.0f) {
+//
+//
+//        Timber.d("Centered")
+//    } else if (displacementX!! < 0.0f) {
+//
+////                    Negitive Is Right
+////turnRight()
+//        Timber.d("Turn Right")
+//    } else {
+//        Timber.d("None Width")
+//    }
 
 
 //            working buttons
@@ -310,13 +497,13 @@ turnRight()
 //                }
 //
 //
+                                }
+                else if (toggle == false){
+
+                    imageView2?.setImageBitmap(textureView?.getBitmap())
+
+
                 }
-else if (toggle == false){
-
-    imageView2?.setImageBitmap(textureView?.getBitmap())
-
-
-}
 
             }
 
@@ -703,6 +890,7 @@ else if (toggle == false){
 
     private var face_cascade_name = "/storage/emulated/0/data/haarcascades/haarcascade_frontalface_alt.xml"
     private var eyes_cascade_name = "/storage/emulated/0/data/haarcascades/haarcascade_eye_tree_eyeglasses.xml"
+    private var full_cascade_xml = "/storage/emulated/0/data/haarcascades/haarcascade_fullbody.xml"
 
 
     fun returnFrameWidth(frame: Mat): Float{
@@ -725,6 +913,7 @@ else if (toggle == false){
     fun detectAndDisplay(frame: Mat): FloatArray {
 
         var faceCascade: CascadeClassifier
+        var bodyCascade: CascadeClassifier
 
 
         val s = frame.size()
@@ -732,9 +921,11 @@ else if (toggle == false){
         val widthF = s.width.toFloat() / 2
 //        val widthF = s.width
 
-
+//        HOGDescriptor hog
         faceCascade = CascadeClassifier()
-        faceCascade.load(face_cascade_name)
+//        bodyCascade = CascadeClassifier()
+//        faceCascade.load(face_cascade_name)
+        Timber.d("The loader is working++++++++++++++++\n" + faceCascade.load(full_cascade_xml))
         var absoluteFaceSize = 0
 
 
@@ -753,16 +944,20 @@ else if (toggle == false){
         // compute minimum face size (20% of the frame height, in our case)
         if (absoluteFaceSize == 0) {
             val height = grayFrame.rows()
-            if (Math.round(height * 0.05f) > 0) {
-                absoluteFaceSize = Math.round(height * 0.05f)
+            if (Math.round(height * 1.00f) > 0) {
+                absoluteFaceSize = Math.round(height * 1.00f)
             }
         }
 
 
         // detect faces
+//        faceCascade.detectMultiScale(grayFrame, faces, 1.1, 2, 0 or Objdetect.CASCADE_SCALE_IMAGE,
+//                Size(absoluteFaceSize.toDouble(), absoluteFaceSize.toDouble()), Size())
+
+//detect body
         faceCascade.detectMultiScale(grayFrame, faces, 1.1, 2, 0 or Objdetect.CASCADE_SCALE_IMAGE,
                 Size(absoluteFaceSize.toDouble(), absoluteFaceSize.toDouble()), Size())
-
+//faceCascade.d
         // each rectangle in faces is a face: draw them!
         val facesArray = faces.toArray()
         var center: Point
@@ -787,7 +982,7 @@ else if (toggle == false){
     }
 
 //    fun detectBody(frame: Mat): FloatArray{
-
+//
 
 //        val hog = HOGDescriptor();
 //        hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
@@ -802,67 +997,67 @@ else if (toggle == false){
 
 //    Edits
 
-    private var ALTITUDE = 1.5
-    private val cmd_center = object : AbstractCommandListener() {
-        override fun onSuccess() {
-            //            Log.d(TAG, "Command received");
-        }
+//    private var ALTITUDE = 1.5
+//    private val cmd_center = object : AbstractCommandListener() {
+//        override fun onSuccess() {
+//            //            Log.d(TAG, "Command received");
+//        }
+//
+//        override fun onError(executionError: Int) {
+//            //            Log.d(TAG, "Command error");
+//        }
+//
+//        override fun onTimeout() {
+//            //            Log.d(TAG, "Command not received, timeout.");
+//        }
+//    }
 
-        override fun onError(executionError: Int) {
-            //            Log.d(TAG, "Command error");
-        }
-
-        override fun onTimeout() {
-            //            Log.d(TAG, "Command not received, timeout.");
-        }
-    }
-
-    private fun ascend() {
-        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
-        //            @Override
-        //            public void run() {
-        ALTITUDE += 0.1
-        ControlApi.getApi(drone).climbTo(ALTITUDE)
-        ////            }
-        //        });
-        //        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
-    }
-
-    private fun descend() {
-        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
-        //            @Override
-        //            public void run() {
-        ALTITUDE -= 0.1
-        ControlApi.getApi(drone).climbTo(ALTITUDE)
-        //            }
-        //        });
-        //        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
-    }
-
-    private fun turnRight() {
-        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
-        //            @Override
-        //            public void run() {
-        //                Log.d(TAG, "Running Turn");
-        ControlApi.getApi(drone).turnTo(10f, 0.1f, true, cmd_center)
-        //                Log.d(TAG, "Running Turn finished");
-        //                ControlApi.getApi(getDrone()).goTo();
-        //            }
-        //        });
-        //        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
-    }
-
-    private fun turnLeft() {
-        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
-        //            @Override
-        //            public void run() {
-        //                Log.d(TAG, "Running Turn");
-        ControlApi.getApi(drone).turnTo(10f, -0.1f, true, cmd_center)
-        //                Log.d(TAG, "Running Turn finished");
-        //                ControlApi.getApi(getDrone()).goTo();
-        //            }
-        //        });
-        //        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
-    }
+//    private fun ascend() {
+//        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
+//        //            @Override
+//        //            public void run() {
+//        ALTITUDE += 0.1
+//        ControlApi.getApi(drone).climbTo(ALTITUDE)
+//        ////            }
+//        //        });
+//        //        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
+//    }
+//
+//    private fun descend() {
+//        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("climb up 1 meter", new Runnable() {
+//        //            @Override
+//        //            public void run() {
+//        ALTITUDE -= 0.1
+//        ControlApi.getApi(drone).climbTo(ALTITUDE)
+//        //            }
+//        //        });
+//        //        unlockDialog.show(getChildFragmentManager(), "Slide to raise 1.0 m");
+//    }
+//
+//    private fun turnRight() {
+//        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
+//        //            @Override
+//        //            public void run() {
+//        //                Log.d(TAG, "Running Turn");
+//        ControlApi.getApi(drone).turnTo(10f, 0.1f, true, cmd_center)
+//        //                Log.d(TAG, "Running Turn finished");
+//        //                ControlApi.getApi(getDrone()).goTo();
+//        //            }
+//        //        });
+//        //        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
+//    }
+//
+//    private fun turnLeft() {
+//        //        final SlideToUnlockDialog unlockDialog = SlideToUnlockDialog.newInstance("turn left 90 degrees", new Runnable() {
+//        //            @Override
+//        //            public void run() {
+//        //                Log.d(TAG, "Running Turn");
+//        ControlApi.getApi(drone).turnTo(10f, -0.1f, true, cmd_center)
+//        //                Log.d(TAG, "Running Turn finished");
+//        //                ControlApi.getApi(getDrone()).goTo();
+//        //            }
+//        //        });
+//        //        unlockDialog.show(getChildFragmentManager(), "Slide to turn left 90 degrees");
+//    }
 
 }
